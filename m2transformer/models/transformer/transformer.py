@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 import copy
-from models.containers import ModuleList
-from ..captioning_model import CaptioningModel
+from m2transformer.models.containers import ModuleList
+from m2transformer.models.captioning_model import CaptioningModel
 
 
 class Transformer(CaptioningModel):

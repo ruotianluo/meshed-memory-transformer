@@ -1,8 +1,8 @@
 from torch.nn import functional as F
-from models.transformer.utils import PositionWiseFeedForward
+from m2transformer.models.transformer.utils import PositionWiseFeedForward
 import torch
 from torch import nn
-from models.transformer.attention import MultiHeadAttention
+from m2transformer.models.transformer.attention import MultiHeadAttention
 
 
 class EncoderLayer(nn.Module):

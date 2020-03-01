@@ -3,7 +3,7 @@ from data import ImageDetectionsField, TextField, RawField
 from data import COCO, DataLoader
 import evaluation
 from evaluation import PTBTokenizer, Cider
-from models.transformer import Transformer, MemoryAugmentedEncoder, MeshedDecoder, ScaledDotProductAttentionMemory
+from m2transformer.models.transformer import Transformer, MemoryAugmentedEncoder, MeshedDecoder, ScaledDotProductAttentionMemory
 import torch
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR

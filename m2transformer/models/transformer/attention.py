@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from torch import nn
-from models.containers import Module
+from m2transformer.models.containers import Module
 
 
 class ScaledDotProductAttention(nn.Module):

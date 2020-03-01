@@ -3,9 +3,9 @@ from torch import nn
 from torch.nn import functional as F
 import numpy as np
 
-from models.transformer.attention import MultiHeadAttention
-from models.transformer.utils import sinusoid_encoding_table, PositionWiseFeedForward
-from models.containers import Module, ModuleList
+from .attention import MultiHeadAttention
+from .utils import sinusoid_encoding_table, PositionWiseFeedForward
+from ..containers import Module, ModuleList
 
 
 class MeshedDecoderLayer(Module):
