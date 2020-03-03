@@ -66,7 +66,7 @@ def evaluate_metrics(model, dataloader, text_field):
     return scores
 
 
-def train_xe(model, dataloader, optim, text_field):
+def train_xe(model, dataloader, optim, text_field, epoch):
     # Training with cross-entropy
     model.train()
     scheduler.step()
@@ -83,6 +83,10 @@ def train_xe(model, dataloader, optim, text_field):
 
             optim.step()
             this_loss = loss.item()
+
+            if it % 25 == 0:
+                writer.add_scalar('data/training_loss', this_loss, e * len(dataloader) + it)
+
             running_loss += this_loss
 
             pbar.set_postfix(loss=running_loss / (it + 1))
@@ -93,7 +97,7 @@ def train_xe(model, dataloader, optim, text_field):
     return loss
 
 
-def train_scst(model, dataloader, optim, cider, text_field):
+def train_scst(model, dataloader, optim, cider, text_field, epoch):
     # Training with self-critical
     tokenizer_pool = multiprocessing.Pool()
     running_reward = .0
@@ -122,6 +126,11 @@ def train_scst(model, dataloader, optim, cider, text_field):
             loss = loss.mean()
             loss.backward()
             optim.step()
+
+            if it % 25 == 0:
+                writer.add_scalar('data/training_loss', loss.item(), e * len(dataloader) + it)
+                writer.add_scalar('data/reward', reward.mean().item(), e * len(dataloader) + it)
+                writer.add_scalar('data/reward_var', reward.var(1).mean().item(), e * len(dataloader) + it)
 
             running_loss += loss.item()
             running_reward += reward.mean().item()
@@ -236,10 +245,10 @@ if __name__ == '__main__':
         dict_dataloader_test = DataLoader(dict_dataset_test, batch_size=args.batch_size // 5)
 
         if not use_rl:
-            train_loss = train_xe(model, dataloader_train, optim, text_field)
+            train_loss = train_xe(model, dataloader_train, optim, text_field, e)
             writer.add_scalar('data/train_loss', train_loss, e)
         else:
-            train_loss, reward, reward_baseline = train_scst(model, dict_dataloader_train, optim, cider_train, text_field)
+            train_loss, reward, reward_baseline = train_scst(model, dict_dataloader_train, optim, cider_train, text_field, e)
             writer.add_scalar('data/train_loss', train_loss, e)
             writer.add_scalar('data/reward', reward, e)
             writer.add_scalar('data/reward_baseline', reward_baseline, e)
@@ -314,6 +323,9 @@ if __name__ == '__main__':
             'best_cider': best_cider,
             'use_rl': use_rl,
         }, 'saved_models/%s_last.pth' % args.exp_name)
+
+        if switch_to_rl:
+            copyfile('saved_models/%s_last.pth' % args.exp_name, 'saved_models/%s_beforerl.pth' % args.exp_name)
 
         if best:
             copyfile('saved_models/%s_last.pth' % args.exp_name, 'saved_models/%s_best.pth' % args.exp_name)
