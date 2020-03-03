@@ -71,6 +71,7 @@ class MeshedDecoder(Module):
         self.N = N_dec
 
         self.register_state('running_mask_self_attention', torch.zeros((1, 1, 0)).byte())
+        # running_seq is the position_ix
         self.register_state('running_seq', torch.zeros((1,)).long())
 
     def forward(self, input, encoder_output, mask_encoder):
@@ -92,6 +93,13 @@ class MeshedDecoder(Module):
             self.running_seq.add_(1)
             seq = self.running_seq
 
+        # RT note: this is for my own use.
+        # When there is a no <pad> token in the vocab, you can use -1 as <pad>
+        # since Embedding would fail for -1, here I manually alter the input
+        # Since we have mask_self_attention, this change won't affect result.
+        input = input.clone().detach() # rtchange
+        if self.padding_idx == -1:
+            input[input == self.padding_idx] = 0 # rtchange
         out = self.word_emb(input) + self.pos_emb(seq)
         for i, l in enumerate(self.layers):
             out = l(out, encoder_output, mask_queries, mask_self_attention, mask_encoder)
