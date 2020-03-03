@@ -29,6 +29,20 @@ python -m spacy download en
 
 Note: Python 3.6 is required to run our code. 
 
+## Use m2transformer as a package
+
+```
+python setup.py install
+```
+
+Then you can 
+```
+from m2transformer.models.transformer import Transformer, MemoryAugmentedEncoder, MeshedDecoder, ScaledDotProductAttentionMemory
+encoder = MemoryAugmentedEncoder(3, 0, attention_module=ScaledDotProductAttentionMemory,
+                                        attention_module_kwargs={'m': 40})
+decoder = MeshedDecoder(10000, 54, 3, -1) # -1 is padding;
+model = Transformer(0, encoder, decoder) # 0 is bos
+```
 
 ## Data preparation
 To run the code, annotations and detection features for the COCO dataset are needed. Please download the annotations file [annotations.zip](https://drive.google.com/file/d/1i8mqKFKhqvBr8kEp3DbIh9-9UNAfKGmE/view?usp=sharing) and extract it.
