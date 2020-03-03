@@ -83,7 +83,7 @@ class MeshedDecoder(Module):
         mask_self_attention = mask_self_attention + (input == self.padding_idx).unsqueeze(1).unsqueeze(1).byte()
         mask_self_attention = mask_self_attention.gt(0)  # (b_s, 1, seq_len, seq_len)
         if self._is_stateful:
-            self.running_mask_self_attention = torch.cat([self.running_mask_self_attention, mask_self_attention], -1)
+            self.running_mask_self_attention = torch.cat([self.running_mask_self_attention.bool(), mask_self_attention], -1)
             mask_self_attention = self.running_mask_self_attention
 
         seq = torch.arange(1, seq_len + 1).view(1, -1).expand(b_s, -1).to(input.device)  # (b_s, seq_len)
