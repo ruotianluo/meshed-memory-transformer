@@ -11,12 +11,25 @@ class Module(nn.Module):
         self._state_defaults = dict()
 
     def register_state(self, name: str, default: TensorOrNone):
+        """
+        RT note: buffer is not the perfect implementaiton for states
+        A buffer is better to be a non-Variable and fixed size.
+        And buffers also will be saved in state_dict, which
+        the internal states don't need.
+        Since states are updated on the fly, so a normal
+        local element is enough. For example save all the states
+        in a dictionary self._states.
+        The only benefit to use buffer here is the states can directly
+        visisted by getattr.
+        (In principle, for clarity, it's better to save them separately.
+        However, to reduce change in code, we keep this design.)
+        """
         self._state_names.append(name)
         if default is None:
             self._state_defaults[name] = None
         else:
             self._state_defaults[name] = default.clone().detach()
-        self.register_buffer(name, default)
+        self.register_buffer(name, None)
 
     def states(self):
         for name in self._state_names:
@@ -37,17 +50,14 @@ class Module(nn.Module):
             if self._state_defaults[name] is None:
                 self._buffers[name] = None
             else:
-                self._buffers[name] = self._state_defaults[name].clone().detach().to(self._buffers[name].device)
+                self._buffers[name] = self._state_defaults[name].clone().detach().to(next(self.parameters()).device)
                 self._buffers[name] = self._buffers[name].unsqueeze(0)
                 self._buffers[name] = self._buffers[name].expand([batch_size, ] + list(self._buffers[name].shape[1:]))
                 self._buffers[name] = self._buffers[name].contiguous()
 
     def _reset_states(self):
         for name in self._state_names:
-            if self._state_defaults[name] is None:
-                self._buffers[name] = None
-            else:
-                self._buffers[name] = self._state_defaults[name].clone().detach().to(self._buffers[name].device)
+            self._buffers[name] = None
 
     def enable_statefulness(self, batch_size: int):
         for m in self.children():
