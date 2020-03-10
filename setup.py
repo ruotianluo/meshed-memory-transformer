@@ -5,6 +5,6 @@ setuptools.setup(
     version="0.0.1",
     author="",
     author_email="",
-    packages=setuptools.find_packages(),
+    packages=[_ for _ in setuptools.find_packages() if 'm2transformer' in _],
     python_requires='>=3.6',
 )
