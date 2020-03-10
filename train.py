@@ -86,6 +86,7 @@ def train_xe(model, dataloader, optim, text_field, epoch):
 
             if it % 25 == 0:
                 writer.add_scalar('data/training_loss', this_loss, e * len(dataloader) + it)
+                writer.add_scalar('data/learning_rate', optim.param_groups[0]['lr'], e * len(dataloader) + it)
 
             running_loss += this_loss
 
@@ -131,6 +132,7 @@ def train_scst(model, dataloader, optim, cider, text_field, epoch):
                 writer.add_scalar('data/training_loss', loss.item(), e * len(dataloader) + it)
                 writer.add_scalar('data/reward', reward.mean().item(), e * len(dataloader) + it)
                 writer.add_scalar('data/reward_var', reward.var(1).mean().item(), e * len(dataloader) + it)
+                writer.add_scalar('data/learning_rate', optim.param_groups[0]['lr'], e * len(dataloader) + it)
 
             running_loss += loss.item()
             running_reward += reward.mean().item()
