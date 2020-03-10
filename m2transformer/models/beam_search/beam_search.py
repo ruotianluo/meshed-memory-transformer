@@ -126,19 +126,26 @@ class BeamSearch(object):
         outputs = list(torch.gather(o, 1, selected_beam.unsqueeze(-1)) for o in outputs)
         outputs.append(selected_words.unsqueeze(-1))
 
-        if return_probs:
-            if t == 0:
-                self.all_log_probs.append(word_logprob.expand((self.b_s, self.beam_size, -1)).unsqueeze(2))
-            else:
-                self.all_log_probs.append(word_logprob.unsqueeze(2))
-
-        this_word_logprob = torch.gather(word_logprob, 1,
+        selected_beam_logprob = torch.gather(word_logprob, 1,
                                          selected_beam.unsqueeze(-1).expand(self.b_s, self.beam_size,
-                                                                            word_logprob.shape[-1]))
-        this_word_logprob = torch.gather(this_word_logprob, 2, selected_words.unsqueeze(-1))
+                                                                            word_logprob.shape[-1])) # Bxbxvocab
+        
+        this_word_logprob = torch.gather(selected_beam_logprob, 2, selected_words.unsqueeze(-1))
         self.log_probs = list(
             torch.gather(o, 1, selected_beam.unsqueeze(-1).expand(self.b_s, self.beam_size, 1)) for o in self.log_probs)
         self.log_probs.append(this_word_logprob)
         self.selected_words = selected_words.view(-1, 1)
+
+
+        if return_probs:
+            if t == 0:
+                self.all_log_probs.append(word_logprob.expand((self.b_s, self.beam_size, -1)).unsqueeze(2))
+            else:
+                self.all_log_probs = list(
+                    torch.gather(o, 1, selected_beam.unsqueeze(-1).unsqueeze(-1).expand(self.b_s, self.beam_size, 1, o.shape[-1])) for o in self.all_log_probs)
+                self.all_log_probs.append(selected_beam_logprob.unsqueeze(-2))
+
+            # if not all([(_.gather(-1, ___.unsqueeze(-1)).squeeze(-1) == __).all() for _,__,___ in zip(self.all_log_probs, self.log_probs, outputs)]):
+            #     import pudb;pu.db
 
         return visual, outputs
