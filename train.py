@@ -1,8 +1,8 @@
 import random
-from data import ImageDetectionsField, TextField, RawField
-from data import COCO, DataLoader
-import evaluation
-from evaluation import PTBTokenizer, Cider
+from m2transformer.data import ImageDetectionsField, TextField, RawField
+from m2transformer.data import COCO, DataLoader
+import m2transformer.evaluation as evaluation
+from m2transformer.evaluation import PTBTokenizer, Cider
 from m2transformer.models.transformer import Transformer, MemoryAugmentedEncoder, MeshedDecoder, ScaledDotProductAttentionMemory
 import torch
 from torch.optim import Adam
