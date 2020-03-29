@@ -2,7 +2,7 @@ import random
 from data import ImageDetectionsField, TextField, RawField
 from data import COCO, DataLoader
 import evaluation
-from models.transformer import Transformer, MemoryAugmentedEncoder, MeshedDecoder, ScaledDotProductAttentionMemory
+from m2transformer.models.transformer import Transformer, MemoryAugmentedEncoder, MeshedDecoder, ScaledDotProductAttentionMemory
 import torch
 from tqdm import tqdm
 import argparse
