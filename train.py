@@ -161,6 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('--features_path', type=str)
     parser.add_argument('--annotation_folder', type=str)
     parser.add_argument('--logs_folder', type=str, default='tensorboard_logs')
+    parser.add_argument('--mytransformer', action='store_true', default='')
     args = parser.parse_args()
     print(args)
 
@@ -187,10 +188,21 @@ if __name__ == '__main__':
         text_field.vocab = pickle.load(open('vocab_%s.pkl' % args.exp_name, 'rb'))
 
     # Model and dataloaders
-    encoder = MemoryAugmentedEncoder(3, 0, attention_module=ScaledDotProductAttentionMemory,
-                                     attention_module_kwargs={'m': args.m})
-    decoder = MeshedDecoder(len(text_field.vocab), 54, 3, text_field.vocab.stoi['<pad>'])
-    model = Transformer(text_field.vocab.stoi['<bos>'], encoder, decoder).to(device)
+    if args.mytransformer:
+        from m2transformer.models.transformer.original_transformer import OriginalTransformer
+        model = OriginalTransformer(text_field.vocab.stoi['<bos>'],
+                                    text_field.vocab.stoi['<eos>'],
+                                    text_field.vocab.stoi['<pad>'],
+                                    {k:v for k,v in enumerate(text_field.vocab.itos)}).to(device)
+    else:
+        encoder = MemoryAugmentedEncoder(3, 0, attention_module=ScaledDotProductAttentionMemory,
+                                        attention_module_kwargs={'m': args.m})
+        decoder = MeshedDecoder(len(text_field.vocab), 54, 3, text_field.vocab.stoi['<pad>'])
+        model = Transformer(text_field.vocab.stoi['<bos>'], encoder, decoder).to(device)
+
+    if torch.cuda.device_count() > 1:
+        model = torch.nn.DataParallel(model)
+        model.d_model = model.module.d_model
 
     dict_dataset_train = train_dataset.image_dictionary({'image': image_field, 'text': RawField()})
     ref_caps_train = list(train_dataset.text)
